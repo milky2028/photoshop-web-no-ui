@@ -3,52 +3,131 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Photoshop Web Booter</title>
     <style>
       body {
         display: grid;
         justify-items: start;
         row-gap: 0.5rem;
       }
+
+      * {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .divider {
+        width: 100%;
+        height: 2px;
+        background-color: black;
+      }
     </style>
   </head>
   <body>
-    <div>Status: <span id="status">Uninitialized</span></div>
-    <div>Cross Origin Isolated: <span id="isolated">...</span></div>
+    <div class="divider"></div>
+    <div><strong>Status: </strong><span id="status">uninitialized</span></div>
+    <div>
+      <strong>Cross Origin Isolated: </strong><span id="isolated">...</span>
+    </div>
+    <div class="divider"></div>
     <div>
       This application allows you to step through Photoshop Web's booting
       process with a configured memory amount.
     </div>
+    <div class="divider"></div>
     <label>
-      <div>Allotted Memory: <span id="configured-memory">...</span>GB</div>
-      <input type="range" min="1" max="4" step="0.5" />
+      <div>
+        Initial WebAssembly Memory Allotment:
+        <span id="configured-memory">...</span>GB
+      </div>
+      <input style="width: 300px" type="range" min="1" max="3.75" step="0.25" />
     </label>
-    <ul>
-      <li>
-        <button id="load-glue">Load Generated Emscripten JS Glue Code</button>
-      </li>
-      <li><button id="load-wasm">Load WASM</button></li>
-      <li><button id="attach-canvas">Create and Attach to Canvas</button></li>
-      <li><button id="import-file">Import File</button></li>
-      <li><button id="draw-brushstroke">Draw Brushstroke</button></li>
-    </ul>
+    <div class="divider"></div>
+    <div>Boot Process</div>
+    <div class="divider"></div>
+    <div>
+      <button id="load-glue">Load Emscripten JS Glue Code</button>
+      <span id="glue-status"></span>
+    </div>
+    <div>
+      <button id="load-wasm">Load WASM</button>
+      <span id="wasm-status"></span>
+    </div>
+    <button id="attach-canvas">Create and Attach to Canvas</button>
+    <button id="import-file">Import File</button>
+    <button id="draw-brushstroke">Draw Brushstroke</button>
+    <div class="divider"></div>
     <script type="module">
+      let wasmRequest = undefined;
+      const { promise: wasmShouldBeLoaded, resolve: doWasmLoad } =
+        Promise.withResolvers();
+
+      const originalFetch = fetch;
+      window.fetch = async (...args) => {
+        if (typeof args[0] === "string" && args[0].includes(".wasm")) {
+          await wasmShouldBeLoaded;
+          wasmRequest = originalFetch(...args);
+          return wasmRequest;
+        }
+
+        return originalFetch(...args);
+      };
+
       const isolation = document.querySelector("#isolated");
       isolation.textContent = crossOriginIsolated;
 
       const memory = document.querySelector(`input[type="range"]`);
       const configuredMemory = document.querySelector("#configured-memory");
 
-      memory.value = 2;
-      configuredMemory.textContent = memory.value;
+      const DEFAULT_MEMORY_VALUE = 2;
+      memory.value = DEFAULT_MEMORY_VALUE;
+      configuredMemory.textContent = DEFAULT_MEMORY_VALUE;
       memory.addEventListener("input", (event) => {
         configuredMemory.textContent = event.target.value;
       });
 
+      function loadScript(url) {
+        return new Promise((resolve) => {
+          const script = document.createElement("script");
+          script.onload = () => resolve("JS glue code initialized ✅");
+          script.onerror = () => resolve("Failed to load JS glue code ❌");
+          script.type = "text/javascript";
+          script.src = url;
+          document.body.appendChild(script);
+        });
+      }
+
+      function createWasmMemory() {
+        const WASM_BLOCK_SIZE = 65536;
+        const ONE_GIBIBYTE = 1024 * 1024 * 1024;
+
+        return new WebAssembly.Memory({
+          initial: (memory.value * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
+          maximum: (4 * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
+          shared: true,
+        });
+      }
+
+      const COMPLETE = " - ✅";
+      const glueStatus = document.querySelector("#glue-status");
+      const status = document.querySelector("#status");
       const loadGlue = document.querySelector("#load-glue");
+      loadGlue.addEventListener("click", async () => {
+        globalThis.Module = globalThis.Module || {};
+        globalThis.Module.wasmMemory = createWasmMemory();
+
+        const result = await loadScript('"/apollo_web.CxKogY9t.js"');
+        status.textContent = "";
+        status.textContent += result;
+        glueStatus.textContent = COMPLETE;
+      });
+
       const loadWasm = document.querySelector("#load-wasm");
-      loadGlue.addEventListener("click", () => {
-        new SharedArrayBuffer(1000);
+      const wasmStatus = document.querySelector("#wasm-status");
+      loadWasm.addEventListener("click", async () => {
+        doWasmLoad();
+        await wasmRequest;
+        status.textContent += " WASM loaded ✅";
+        wasmStatus.textContent = COMPLETE;
       });
     </script>
   </body>
