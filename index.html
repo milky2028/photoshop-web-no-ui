@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        display: grid;
+        justify-items: start;
+        row-gap: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div>Status: <span>Uninitialized</span></div>
+    <div>
+      This application allows you to step through Photoshop Web's booting
+      process with a configured memory amount.
+    </div>
+    <label>
+      <div>Allotted Memory: <span id="configured-memory"></span>GB</div>
+      <input type="range" min="1" max="4" step="0.5" />
+    </label>
+    <ul>
+      <li>
+        <button id="load-glue">Load Generated Emscripten JS Glue Code</button>
+      </li>
+      <li><button id="load-wasm">Load WASM</button></li>
+      <li><button id="attach-canvas">Create and Attach to Canvas</button></li>
+      <li><button id="import-file">Import File</button></li>
+      <li><button id="draw-brushstroke">Draw Brushstroke</button></li>
+    </ul>
+    <script type="module">
+      const memory = document.querySelector(`input[type="range"]`);
+      memory.value = 2;
+      const configuredMemory = document.querySelector("#configured-memory");
+      configuredMemory.textContent = memory.value;
+
+      memory.addEventListener("input", (event) => {
+        configuredMemory.textContent = event.target.value;
+      });
+    </script>
+  </body>
+</html>
