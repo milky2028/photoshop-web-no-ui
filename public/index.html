@@ -59,7 +59,7 @@
     </div>
     <div>
       <input id="auto-canvas" type="checkbox" />
-      <button id="load-wasm">Create and Attach Canvas</button>
+      <button id="load-canvas">Create and Attach Canvas</button>
       <span id="canvas-status"></span>
     </div>
     <div>
@@ -89,10 +89,96 @@
         ? JSON.parse(storedAutobootConfig)
         : { ...DEFAULT_AUTOBOOT_CONFIG };
 
-      for (const [key, checked] of Object.entries(autobootConfig)) {
-        if (typeof checked === "boolean") {
+      const isolation = document.querySelector("#isolated");
+      isolation.textContent = crossOriginIsolated;
+
+      const memory = document.querySelector(`input[type="range"]`);
+      const configuredMemory = document.querySelector("#configured-memory");
+
+      memory.value = autobootConfig["auto-memory"];
+      configuredMemory.textContent = memory.value;
+      memory.addEventListener("input", (event) => {
+        configuredMemory.textContent = event.target.value;
+        autobootConfig["auto-memory"] = event.target.value;
+        localStorage.setItem(AUTOBOOT_KEY, JSON.stringify(autobootConfig));
+      });
+
+      const COMPLETE = " - ✅";
+      const FAILED = " - ❌";
+      const glueStatus = document.querySelector("#glue-status");
+      const status = document.querySelector("#status");
+
+      function loadScript(url) {
+        return new Promise((resolve) => {
+          const script = document.createElement("script");
+          script.onload = () => resolve("JS glue code initialized ✅");
+          script.onerror = () => resolve("Failed to load JS glue code ❌");
+          script.type = "text/javascript";
+          script.src = url;
+          document.body.appendChild(script);
+        });
+      }
+
+      function createWasmMemory(value) {
+        const WASM_BLOCK_SIZE = 65536;
+        const ONE_GIBIBYTE = 1024 * 1024 * 1024;
+
+        return new WebAssembly.Memory({
+          initial: (value * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
+          maximum: (4 * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
+          shared: true,
+        });
+      }
+
+      async function runGlueLoader() {
+        globalThis.Module = globalThis.Module || {};
+        globalThis.Module.wasmMemory = createWasmMemory(memory.value);
+
+        const result = await loadScript("/apollo_web.CxKogY9t.js");
+        status.textContent = "";
+        status.textContent += result;
+        glueStatus.textContent = COMPLETE;
+      }
+
+      const wasmStatus = document.querySelector("#wasm-status");
+      async function runWasmLoader() {
+        doWasmLoad();
+        await wasmRequest;
+        status.textContent += " WASM loaded ✅";
+        wasmStatus.textContent = COMPLETE;
+      }
+
+      let wasmRequest = undefined;
+      const { promise: wasmShouldBeLoaded, resolve: doWasmLoad } =
+        Promise.withResolvers();
+
+      const originalFetch = fetch;
+      window.fetch = async (...args) => {
+        if (typeof args[0] === "string" && args[0].includes(".wasm")) {
+          await wasmShouldBeLoaded;
+          wasmRequest = originalFetch(...args);
+          return wasmRequest;
+        }
+
+        return originalFetch(...args);
+      };
+
+      for (const [key, run] of Object.entries(autobootConfig)) {
+        if (typeof run === "boolean") {
           const box = document.querySelector(`input#${key}`);
-          box.checked = checked;
+          box.checked = run;
+        }
+
+        if (key === "auto-glue" && run) {
+          await runGlueLoader();
+        }
+
+        if (key === "auto-wasm" && run) {
+          await runWasmLoader();
+        }
+
+        if (key === "auto-canvas" && run) {
+          console.log("auto create canvas");
         }
       }
 
@@ -118,79 +204,19 @@
         location.reload();
       });
 
-      let wasmRequest = undefined;
-      const { promise: wasmShouldBeLoaded, resolve: doWasmLoad } =
-        Promise.withResolvers();
-
-      const originalFetch = fetch;
-      window.fetch = async (...args) => {
-        if (typeof args[0] === "string" && args[0].includes(".wasm")) {
-          await wasmShouldBeLoaded;
-          wasmRequest = originalFetch(...args);
-          return wasmRequest;
-        }
-
-        return originalFetch(...args);
-      };
-
-      const isolation = document.querySelector("#isolated");
-      isolation.textContent = crossOriginIsolated;
-
-      const memory = document.querySelector(`input[type="range"]`);
-      const configuredMemory = document.querySelector("#configured-memory");
-
-      memory.value = autobootConfig["auto-memory"];
-      configuredMemory.textContent = memory.value;
-      memory.addEventListener("input", (event) => {
-        configuredMemory.textContent = event.target.value;
-        autobootConfig["auto-memory"] = event.target.value;
-        localStorage.setItem(AUTOBOOT_KEY, JSON.stringify(autobootConfig));
-      });
-
-      function loadScript(url) {
-        return new Promise((resolve) => {
-          const script = document.createElement("script");
-          script.onload = () => resolve("JS glue code initialized ✅");
-          script.onerror = () => resolve("Failed to load JS glue code ❌");
-          script.type = "text/javascript";
-          script.src = url;
-          document.body.appendChild(script);
-        });
-      }
-
-      function createWasmMemory(value) {
-        const WASM_BLOCK_SIZE = 65536;
-        const ONE_GIBIBYTE = 1024 * 1024 * 1024;
-
-        return new WebAssembly.Memory({
-          initial: (value * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
-          maximum: (4 * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
-          shared: true,
-        });
-      }
-
-      const COMPLETE = " - ✅";
-      const FAILED = " - ❌";
-      const glueStatus = document.querySelector("#glue-status");
-      const status = document.querySelector("#status");
       const loadGlue = document.querySelector("#load-glue");
       loadGlue.addEventListener("click", async () => {
-        globalThis.Module = globalThis.Module || {};
-        globalThis.Module.wasmMemory = createWasmMemory(memory.value);
-
-        const result = await loadScript("/apollo_web.CxKogY9t.js");
-        status.textContent = "";
-        status.textContent += result;
-        glueStatus.textContent = COMPLETE;
+        runGlueLoader();
       });
 
       const loadWasm = document.querySelector("#load-wasm");
-      const wasmStatus = document.querySelector("#wasm-status");
       loadWasm.addEventListener("click", async () => {
-        doWasmLoad();
-        await wasmRequest;
-        status.textContent += " WASM loaded ✅";
-        wasmStatus.textContent = COMPLETE;
+        runWasmLoader();
+      });
+
+      const loadCanvas = document.querySelector("#load-canvas");
+      loadCanvas.addEventListener("click", async () => {
+        console.log("create canvas");
       });
     </script>
   </body>
