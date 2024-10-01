@@ -33,12 +33,18 @@
     </ul>
     <script type="module">
       const memory = document.querySelector(`input[type="range"]`);
-      memory.value = 2;
       const configuredMemory = document.querySelector("#configured-memory");
-      configuredMemory.textContent = memory.value;
 
+      memory.value = 2;
+      configuredMemory.textContent = memory.value;
       memory.addEventListener("input", (event) => {
         configuredMemory.textContent = event.target.value;
+      });
+
+      const loadGlue = document.querySelector("#load-glue");
+      const loadWasm = document.querySelector("#load-wasm");
+      loadGlue.addEventListener("click", () => {
+        new SharedArrayBuffer(1000);
       });
     </script>
   </body>
