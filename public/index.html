@@ -31,7 +31,10 @@
     <div class="divider"></div>
     <div>
       This application allows you to step through Photoshop Web's booting
-      process with a configured memory amount.
+      process with a pre-configured memory amount.
+      <br />
+      Use the checkbox next to each step to configure that step to run
+      automatically on page reload.
     </div>
     <div class="divider"></div>
     <label>
@@ -43,18 +46,31 @@
     </label>
     <div class="divider"></div>
     <div>Boot Process</div>
-    <div class="divider"></div>
     <div>
+      <input id="auto-glue" type="checkbox" />
       <button id="load-glue">Load Emscripten JS Glue Code</button>
       <span id="glue-status"></span>
     </div>
     <div>
+      <input id="auto-wasm" type="checkbox" />
       <button id="load-wasm">Load WASM</button>
       <span id="wasm-status"></span>
     </div>
-    <button id="attach-canvas">Create and Attach to Canvas</button>
-    <button id="import-file">Import File</button>
-    <button id="draw-brushstroke">Draw Brushstroke</button>
+    <div>
+      <input id="auto-canvas" type="checkbox" />
+      <button id="load-wasm">Create and Attach Canvas</button>
+      <span id="canvas-status"></span>
+    </div>
+    <div>
+      <input id="auto-file" type="checkbox" />
+      <button id="load-file">Import File</button>
+      <span id="file-status"></span>
+    </div>
+    <div>
+      <input id="auto-stroke" type="checkbox" />
+      <button id="load-stroke">Draw Brushstroke</button>
+      <span id="stroke-status"></span>
+    </div>
     <div class="divider"></div>
     <script type="module">
       let wasmRequest = undefined;
