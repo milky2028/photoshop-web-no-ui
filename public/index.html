@@ -95,6 +95,7 @@
         "auto-canvas": false,
         "auto-file": false,
         "auto-stroke": false,
+        "auto-memory": 2,
       };
 
       const AUTOBOOT_KEY = "autoboot";
@@ -104,8 +105,10 @@
         : { ...DEFAULT_AUTOBOOT };
 
       for (const [key, checked] of Object.entries(autobootConfig)) {
-        const box = document.querySelector(`input#${key}`);
-        box.checked = checked;
+        if (typeof checked === "boolean") {
+          const box = document.querySelector(`input#${key}`);
+          box.checked = checked;
+        }
       }
 
       const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -136,11 +139,12 @@
       const memory = document.querySelector(`input[type="range"]`);
       const configuredMemory = document.querySelector("#configured-memory");
 
-      const DEFAULT_MEMORY_VALUE = 2;
-      memory.value = DEFAULT_MEMORY_VALUE;
-      configuredMemory.textContent = DEFAULT_MEMORY_VALUE;
+      memory.value = autobootConfig["auto-memory"];
+      configuredMemory.textContent = memory.value;
       memory.addEventListener("input", (event) => {
         configuredMemory.textContent = event.target.value;
+        autobootConfig["auto-memory"] = event.target.value;
+        localStorage.setItem(AUTOBOOT_KEY, JSON.stringify(autobootConfig));
       });
 
       function loadScript(url) {
