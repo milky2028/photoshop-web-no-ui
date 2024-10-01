@@ -115,7 +115,7 @@
         globalThis.Module = globalThis.Module || {};
         globalThis.Module.wasmMemory = createWasmMemory();
 
-        const result = await loadScript('"/apollo_web.CxKogY9t.js"');
+        const result = await loadScript("/apollo_web.CxKogY9t.js");
         status.textContent = "";
         status.textContent += result;
         glueStatus.textContent = COMPLETE;
