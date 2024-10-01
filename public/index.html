@@ -158,12 +158,12 @@
         });
       }
 
-      function createWasmMemory() {
+      function createWasmMemory(value) {
         const WASM_BLOCK_SIZE = 65536;
         const ONE_GIBIBYTE = 1024 * 1024 * 1024;
 
         return new WebAssembly.Memory({
-          initial: (memory.value * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
+          initial: (value * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
           maximum: (4 * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
           shared: true,
         });
@@ -176,7 +176,7 @@
       const loadGlue = document.querySelector("#load-glue");
       loadGlue.addEventListener("click", async () => {
         globalThis.Module = globalThis.Module || {};
-        globalThis.Module.wasmMemory = createWasmMemory();
+        globalThis.Module.wasmMemory = createWasmMemory(memory.value);
 
         const result = await loadScript("/apollo_web.CxKogY9t.js");
         status.textContent = "";
