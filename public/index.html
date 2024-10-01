@@ -48,6 +48,11 @@
     <div class="divider"></div>
     <div>Boot Process</div>
     <div>
+      <input id="auto-memory" type="checkbox" />
+      <button id="load-memory">Create WASM Memory</button>
+      <span id="memory-status"></span>
+    </div>
+    <div>
       <input id="auto-glue" type="checkbox" />
       <button id="load-glue">Load Emscripten JS Glue Code</button>
       <span id="glue-status"></span>
@@ -75,12 +80,13 @@
     <div class="divider"></div>
     <script type="module">
       const DEFAULT_AUTOBOOT_CONFIG = {
+        "auto-memory": false,
         "auto-glue": false,
         "auto-wasm": false,
         "auto-canvas": false,
         "auto-file": false,
         "auto-stroke": false,
-        "auto-memory": 2,
+        "auto-memory-amount": 2,
       };
 
       const AUTOBOOT_KEY = "autoboot";
@@ -95,11 +101,11 @@
       const memory = document.querySelector(`input[type="range"]`);
       const configuredMemory = document.querySelector("#configured-memory");
 
-      memory.value = autobootConfig["auto-memory"];
+      memory.value = autobootConfig["auto-memory-amount"];
       configuredMemory.textContent = memory.value;
       memory.addEventListener("input", (event) => {
         configuredMemory.textContent = event.target.value;
-        autobootConfig["auto-memory"] = event.target.value;
+        autobootConfig["auto-memory-amount"] = event.target.value;
         localStorage.setItem(AUTOBOOT_KEY, JSON.stringify(autobootConfig));
       });
 
@@ -111,31 +117,35 @@
       function loadScript(url) {
         return new Promise((resolve) => {
           const script = document.createElement("script");
-          script.onload = () => resolve("JS glue code initialized ✅");
-          script.onerror = () => resolve("Failed to load JS glue code ❌");
+          script.onload = () => resolve(" JS glue code initialized ✅");
+          script.onerror = () => resolve(" Failed to load JS glue code ❌");
           script.type = "text/javascript";
           script.src = url;
           document.body.appendChild(script);
         });
       }
 
+      const memoryStatus = document.querySelector("#memory-status");
       function createWasmMemory(value) {
         const WASM_BLOCK_SIZE = 65536;
         const ONE_GIBIBYTE = 1024 * 1024 * 1024;
 
-        return new WebAssembly.Memory({
+        const memory = new WebAssembly.Memory({
           initial: (value * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
           maximum: (4 * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
           shared: true,
         });
+
+        globalThis.Module = globalThis.Module || {};
+        globalThis.Module.wasmMemory = memory;
+
+        status.textContent = "";
+        status.textContent += "WebAssemblyMemory created ✅";
+        memoryStatus.textContent = COMPLETE;
       }
 
       async function runGlueLoader() {
-        globalThis.Module = globalThis.Module || {};
-        globalThis.Module.wasmMemory = createWasmMemory(memory.value);
-
         const result = await loadScript("/apollo_web.CxKogY9t.js");
-        status.textContent = "";
         status.textContent += result;
         glueStatus.textContent = COMPLETE;
       }
@@ -167,6 +177,10 @@
         if (typeof run === "boolean") {
           const box = document.querySelector(`input#${key}`);
           box.checked = run;
+        }
+
+        if (key === "auto-memory" && run) {
+          createWasmMemory(memory.value);
         }
 
         if (key === "auto-glue" && run) {
@@ -202,6 +216,11 @@
         );
 
         location.reload();
+      });
+
+      const loadMemory = document.querySelector("#load-memory");
+      loadMemory.addEventListener("click", async () => {
+        createWasmMemory(memory.value);
       });
 
       const loadGlue = document.querySelector("#load-glue");
