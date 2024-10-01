@@ -36,6 +36,7 @@
       Use the checkbox next to each step to configure that step to run
       automatically on page reload.
     </div>
+    <button id="clear-autoboot">Clear Autoboot</button>
     <div class="divider"></div>
     <label>
       <div>
@@ -87,6 +88,47 @@
 
         return originalFetch(...args);
       };
+
+      const DEFAULT_AUTOBOOT = {
+        "auto-glue": false,
+        "auto-wasm": false,
+        "auto-canvas": false,
+        "auto-file": false,
+        "auto-stroke": false,
+      };
+
+      const AUTOBOOT_KEY = "autoboot";
+      const storedAutobootConfig = localStorage.getItem(AUTOBOOT_KEY);
+      const autobootConfig = storedAutobootConfig
+        ? JSON.parse(storedAutobootConfig)
+        : { ...DEFAULT_AUTOBOOT };
+
+      for (const [key, checked] of Object.entries(autobootConfig)) {
+        const box = document.querySelector(`input#${key}`);
+        box.checked = checked;
+      }
+
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      for (const checkbox of checkboxes) {
+        checkbox.addEventListener("click", (event) => {
+          autobootConfig[event.target.id] = event.target.checked;
+          localStorage.setItem(AUTOBOOT_KEY, JSON.stringify(autobootConfig));
+        });
+      }
+
+      const clearAutoboot = document.querySelector("#clear-autoboot");
+      clearAutoboot.addEventListener("click", () => {
+        for (const box of checkboxes) {
+          box.checked = false;
+        }
+
+        localStorage.setItem(
+          AUTOBOOT_KEY,
+          JSON.stringify({ ...DEFAULT_AUTOBOOT })
+        );
+
+        location.reload();
+      });
 
       const isolation = document.querySelector("#isolated");
       isolation.textContent = crossOriginIsolated;
