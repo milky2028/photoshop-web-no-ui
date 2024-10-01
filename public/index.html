@@ -74,22 +74,7 @@
     </div>
     <div class="divider"></div>
     <script type="module">
-      let wasmRequest = undefined;
-      const { promise: wasmShouldBeLoaded, resolve: doWasmLoad } =
-        Promise.withResolvers();
-
-      const originalFetch = fetch;
-      window.fetch = async (...args) => {
-        if (typeof args[0] === "string" && args[0].includes(".wasm")) {
-          await wasmShouldBeLoaded;
-          wasmRequest = originalFetch(...args);
-          return wasmRequest;
-        }
-
-        return originalFetch(...args);
-      };
-
-      const DEFAULT_AUTOBOOT = {
+      const DEFAULT_AUTOBOOT_CONFIG = {
         "auto-glue": false,
         "auto-wasm": false,
         "auto-canvas": false,
@@ -102,7 +87,7 @@
       const storedAutobootConfig = localStorage.getItem(AUTOBOOT_KEY);
       const autobootConfig = storedAutobootConfig
         ? JSON.parse(storedAutobootConfig)
-        : { ...DEFAULT_AUTOBOOT };
+        : { ...DEFAULT_AUTOBOOT_CONFIG };
 
       for (const [key, checked] of Object.entries(autobootConfig)) {
         if (typeof checked === "boolean") {
@@ -127,11 +112,26 @@
 
         localStorage.setItem(
           AUTOBOOT_KEY,
-          JSON.stringify({ ...DEFAULT_AUTOBOOT })
+          JSON.stringify({ ...DEFAULT_AUTOBOOT_CONFIG })
         );
 
         location.reload();
       });
+
+      let wasmRequest = undefined;
+      const { promise: wasmShouldBeLoaded, resolve: doWasmLoad } =
+        Promise.withResolvers();
+
+      const originalFetch = fetch;
+      window.fetch = async (...args) => {
+        if (typeof args[0] === "string" && args[0].includes(".wasm")) {
+          await wasmShouldBeLoaded;
+          wasmRequest = originalFetch(...args);
+          return wasmRequest;
+        }
+
+        return originalFetch(...args);
+      };
 
       const isolation = document.querySelector("#isolated");
       isolation.textContent = crossOriginIsolated;
@@ -170,6 +170,7 @@
       }
 
       const COMPLETE = " - ✅";
+      const FAILED = " - ❌";
       const glueStatus = document.querySelector("#glue-status");
       const status = document.querySelector("#status");
       const loadGlue = document.querySelector("#load-glue");
