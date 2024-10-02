@@ -41,16 +41,13 @@ async function handler(req: Request): Promise<Response> {
 
   if (path.includes("wasm")) {
     const wasm = { ...ok, headers: { "Content-Type": "application/wasm" } };
-    return new Response(
-      await Deno.readFile("./public/apollo_web.D7k6wVcJ.wasm"),
-      wasm
-    );
+    return new Response(await Deno.readFile("./public/apollo_web.wasm"), wasm);
   }
 
   if (path.includes(".js")) {
     let file = undefined;
     if (path.includes("apollo")) {
-      file = await Deno.readFile("./public/apollo_web.CxKogY9t.js");
+      file = await Deno.readFile("./public/apollo_web.js");
     } else {
       file = await Deno.readFile(`./public${path}`);
     }
@@ -63,7 +60,7 @@ async function handler(req: Request): Promise<Response> {
 
   if (path.includes(".data")) {
     return new Response(
-      await Deno.readFile("./public/apollo_web_required.DXFS64aa.data"),
+      await Deno.readFile("./public/apollo_web_required.data"),
       { ...ok }
     );
   }

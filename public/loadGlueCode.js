@@ -6,7 +6,7 @@ const glueStatus = document.querySelector("#glue-status");
 
 export async function loadGlueCode() {
   glueStatus.textContent = LOADING;
-  const result = await loadScript("/apollo_web.CxKogY9t.js");
+  const result = await loadScript("/apollo_web.js");
   status.textContent += result;
   glueStatus.textContent = COMPLETE;
 }
