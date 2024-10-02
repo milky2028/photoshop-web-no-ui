@@ -1,4 +1,6 @@
-const DEFAULT_AUTOBOOT_CONFIG = {
+import { AUTOBOOT_KEY } from "/constants.js";
+
+export const DEFAULT_AUTOBOOT_CONFIG = {
   "auto-memory": false,
   "auto-glue": false,
   "auto-wasm": false,
@@ -8,7 +10,6 @@ const DEFAULT_AUTOBOOT_CONFIG = {
   "auto-memory-amount": 2,
 };
 
-const AUTOBOOT_KEY = "autoboot";
 const storedAutobootConfig = localStorage.getItem(AUTOBOOT_KEY);
 export const autobootConfig = storedAutobootConfig
   ? JSON.parse(storedAutobootConfig)

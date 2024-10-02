@@ -11,6 +11,16 @@ async function handler(req: Request): Promise<Response> {
     "Cross-Origin-Embedder-Policy": "require-corp",
   };
 
+  if (path.includes("favicon")) {
+    return (
+      new Response(await Deno.readFile("./public/favicon.ico")),
+      {
+        ...ok,
+        "Content-Type": "image/png",
+      }
+    );
+  }
+
   if (path.includes("index") || path === "/") {
     return new Response(await Deno.readFile("./public/index.html"), {
       ...ok,
@@ -43,7 +53,6 @@ async function handler(req: Request): Promise<Response> {
       file = await Deno.readFile("./public/apollo_web.CxKogY9t.js");
     } else {
       file = await Deno.readFile(`./public${path}`);
-      console.log(file);
     }
 
     return new Response(file, {
