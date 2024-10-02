@@ -1,9 +1,15 @@
-import { ONE_GIBIBYTE, WASM_BLOCK_SIZE, COMPLETE } from "/constants.js";
+import {
+  ONE_GIBIBYTE,
+  WASM_BLOCK_SIZE,
+  COMPLETE,
+  LOADING,
+} from "/constants.js";
 
 const status = document.querySelector("#status");
 const memoryStatus = document.querySelector("#memory-status");
 
 export function createWasmMemory(value) {
+  memoryStatus.textContent = LOADING;
   const memory = new WebAssembly.Memory({
     initial: (value * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
     maximum: (4 * ONE_GIBIBYTE) / WASM_BLOCK_SIZE,
