@@ -13,6 +13,7 @@
 
       * {
         font-family: Arial, Helvetica, sans-serif;
+        box-sizing: border-box;
       }
 
       .divider {
@@ -26,7 +27,7 @@
     <div class="divider"></div>
     <div><strong>Status: </strong><span id="status">uninitialized</span></div>
     <div>
-      <strong>Cross Origin Isolated: </strong><span id="isolated">...</span>
+      <strong>crossOriginIsolated: </strong><span id="isolated">...</span>
     </div>
     <div class="divider"></div>
     <div>
@@ -173,6 +174,17 @@
         return originalFetch(...args);
       };
 
+      function createAndAttachCanvas() {
+        const { height: bodyHeight, width: bodyWidth } =
+          document.body.getBoundingClientRect();
+        const remainingHeight = innerHeight - bodyHeight - 32;
+        const canvas = document.createElement("canvas");
+        canvas.style.border = "1px solid black";
+        canvas.height = remainingHeight < 400 ? 400 : remainingHeight;
+        canvas.width = bodyWidth;
+        document.body.appendChild(canvas);
+      }
+
       for (const [key, run] of Object.entries(autobootConfig)) {
         if (typeof run === "boolean") {
           const box = document.querySelector(`input#${key}`);
@@ -192,7 +204,7 @@
         }
 
         if (key === "auto-canvas" && run) {
-          console.log("auto create canvas");
+          createAndAttachCanvas();
         }
       }
 
@@ -235,7 +247,7 @@
 
       const loadCanvas = document.querySelector("#load-canvas");
       loadCanvas.addEventListener("click", async () => {
-        console.log("create canvas");
+        createAndAttachCanvas();
       });
     </script>
   </body>
