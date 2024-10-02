@@ -74,8 +74,8 @@
     </div>
     <div>
       5.
-      <input disabled id="auto-file" type="checkbox" />
-      <button disabled id="load-file">Import File and Open</button>
+      <input id="auto-file" type="checkbox" />
+      <button id="load-file">Import File and Open</button>
       <span id="file-status"></span>
     </div>
     <div>
@@ -93,6 +93,7 @@
       import { createWasmMemory } from "/createWasmMemory.js";
       import { loadGlueCode } from "/loadGlueCode.js";
       import { createAndAttachCanvas } from "/createAndAttachCanvas.js";
+      import { importFile } from "/importFile.js";
 
       const isolation = document.querySelector("#isolated");
       isolation.textContent = crossOriginIsolated;
@@ -128,6 +129,10 @@
 
         if (key === "auto-canvas" && run) {
           createAndAttachCanvas();
+        }
+
+        if (key === "auto-file" && run) {
+          importFile({ initiatedByAutoboot: true });
         }
       }
 
@@ -171,6 +176,11 @@
       const loadCanvas = document.querySelector("#load-canvas");
       loadCanvas.addEventListener("click", async () => {
         createAndAttachCanvas();
+      });
+
+      const loadFile = document.querySelector("#load-file");
+      loadFile.addEventListener("click", () => {
+        importFile();
       });
     </script>
   </body>
