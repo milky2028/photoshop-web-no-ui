@@ -14,6 +14,6 @@ export function createWasmMemory(value) {
   globalThis.Module.wasmMemory = memory;
 
   status.textContent = "";
-  status.textContent += "WebAssemblyMemory created ✅";
+  status.textContent += "WASM created ✅";
   memoryStatus.textContent = COMPLETE;
 }
