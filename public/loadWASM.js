@@ -22,7 +22,11 @@ export async function loadWASM() {
   wasmStatus.textContent = LOADING;
 
   const { promise, resolve } = Promise.withResolvers();
-  window.Module.onRuntimeInitialized = () => {
+  window.Module.onRuntimeInitialized = async () => {
+    await new Promise((resolve) => {
+      window.Module.create_opfs_backend(resolve);
+    });
+
     status.textContent += " WASM loaded ✅";
     wasmStatus.textContent = COMPLETE;
     resolve();
