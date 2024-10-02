@@ -14,6 +14,6 @@ export function createWasmMemory(value) {
   globalThis.Module.wasmMemory = memory;
 
   status.textContent = "";
-  status.textContent += "WASM created ✅";
+  status.textContent += "WASM memory created ✅";
   memoryStatus.textContent = COMPLETE;
 }
