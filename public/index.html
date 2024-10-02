@@ -68,8 +68,8 @@
     </div>
     <div>
       4.
-      <input disabled id="auto-canvas" type="checkbox" />
-      <button disabled id="load-canvas">Create and Attach Canvas</button>
+      <input id="auto-canvas" type="checkbox" />
+      <button id="load-canvas">Create and Attach Canvas</button>
       <span id="canvas-status"></span>
     </div>
     <div>
@@ -92,6 +92,7 @@
       import { COMPLETE, FAILED, AUTOBOOT_KEY } from "/constants.js";
       import { createWasmMemory } from "/createWasmMemory.js";
       import { loadGlueCode } from "/loadGlueCode.js";
+      import { createAndAttachCanvas } from "/createAndAttachCanvas.js";
 
       const isolation = document.querySelector("#isolated");
       isolation.textContent = crossOriginIsolated;
@@ -106,19 +107,6 @@
         autobootConfig["auto-memory-amount"] = event.target.value;
         localStorage.setItem(AUTOBOOT_KEY, JSON.stringify(autobootConfig));
       });
-
-      const canvasStatus = document.querySelector("#canvas-status");
-      function createAndAttachCanvas() {
-        const { height: bodyHeight, width: bodyWidth } =
-          document.body.getBoundingClientRect();
-        const remainingHeight = innerHeight - bodyHeight - 32;
-        const canvas = document.createElement("canvas");
-        canvas.style.border = "1px solid black";
-        canvas.height = remainingHeight < 400 ? 400 : remainingHeight;
-        canvas.width = bodyWidth;
-        document.body.appendChild(canvas);
-        canvasStatus.textContent = COMPLETE;
-      }
 
       for (const [key, run] of Object.entries(autobootConfig)) {
         if (typeof run === "boolean") {
@@ -177,7 +165,7 @@
 
       const loadWasm = document.querySelector("#load-wasm");
       loadWasm.addEventListener("click", async () => {
-        await runWasmLoader();
+        await loadWASM();
       });
 
       const loadCanvas = document.querySelector("#load-canvas");
