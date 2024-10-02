@@ -86,21 +86,8 @@
     </div>
     <div class="divider"></div>
     <script type="module">
-      const DEFAULT_AUTOBOOT_CONFIG = {
-        "auto-memory": false,
-        "auto-glue": false,
-        "auto-wasm": false,
-        "auto-canvas": false,
-        "auto-file": false,
-        "auto-stroke": false,
-        "auto-memory-amount": 2,
-      };
-
-      const AUTOBOOT_KEY = "autoboot";
-      const storedAutobootConfig = localStorage.getItem(AUTOBOOT_KEY);
-      const autobootConfig = storedAutobootConfig
-        ? JSON.parse(storedAutobootConfig)
-        : { ...DEFAULT_AUTOBOOT_CONFIG };
+      import { autobootConfig } from "/autoboot.js";
+      import { loadScript } from "/loadScript.js";
 
       const isolation = document.querySelector("#isolated");
       isolation.textContent = crossOriginIsolated;
@@ -120,17 +107,6 @@
       const FAILED = " - ❌";
       const glueStatus = document.querySelector("#glue-status");
       const status = document.querySelector("#status");
-
-      function loadScript(url) {
-        return new Promise((resolve) => {
-          const script = document.createElement("script");
-          script.onload = () => resolve(" JS glue code initialized ✅");
-          script.onerror = () => resolve(" Failed to load JS glue code ❌");
-          script.type = "text/javascript";
-          script.src = url;
-          document.body.appendChild(script);
-        });
-      }
 
       const memoryStatus = document.querySelector("#memory-status");
       function createWasmMemory(value) {

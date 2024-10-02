@@ -38,13 +38,18 @@ async function handler(req: Request): Promise<Response> {
   }
 
   if (path.includes(".js")) {
-    return new Response(
-      await Deno.readFile("./public/apollo_web.CxKogY9t.js"),
-      {
-        ...ok,
-        headers: { ...js, ...isolated },
-      }
-    );
+    let file = undefined;
+    if (path.includes("apollo")) {
+      file = await Deno.readFile("./public/apollo_web.CxKogY9t.js");
+    } else {
+      file = await Deno.readFile(`./public${path}`);
+      console.log(file);
+    }
+
+    return new Response(file, {
+      ...ok,
+      headers: { ...js, ...isolated },
+    });
   }
 
   if (path.includes(".data")) {
