@@ -1,6 +1,6 @@
 self.addEventListener("message", async ({ data: { file } }) => {
   const root = await navigator.storage.getDirectory();
-  const handle = await root.getFileHandle("imported-file.any", {
+  const handle = await root.getFileHandle("imported-file.png", {
     create: true,
   });
 
